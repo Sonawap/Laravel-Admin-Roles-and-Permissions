@@ -20,6 +20,18 @@ Route::get('/', function () {
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 
 
+Route::resource('user', 'UserController');
+
+Route::get('/profile', 'UserController@profile')->name('user.profile');
+
+Route::post('/profile', 'UserController@postProfile')->name('user.postProfile');
+
+Route::get('/password/change', 'UserController@getPassword')->name('userGetPassword');
+
+Route::post('/password/change', 'UserController@postPassword')->name('userPostPassword');
+
+
+
 Auth::routes();
 
 
