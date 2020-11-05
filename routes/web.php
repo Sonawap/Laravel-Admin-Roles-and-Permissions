@@ -24,6 +24,9 @@ Route::resource('user', 'UserController');
 
 Route::resource('permission', 'PermissionController');
 
+Route::resource('role', 'RoleController');
+
+
 
 Route::get('/profile', 'UserController@profile')->name('user.profile');
 
