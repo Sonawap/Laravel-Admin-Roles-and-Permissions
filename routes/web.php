@@ -38,6 +38,11 @@ Route::post('/password/change', 'UserController@postPassword')->name('userPostPa
 
 
 
+
 Auth::routes();
 
 
+//////////////////////////////// axios request
+
+Route::get('/getAllPermission', 'PermissionController@getAllPermissions');
+Route::post("/postRole", "RoleController@store");

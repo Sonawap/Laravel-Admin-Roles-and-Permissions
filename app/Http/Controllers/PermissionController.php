@@ -26,6 +26,14 @@ class PermissionController extends Controller
 
     }
 
+    public function getAllPermissions(){
+        $permissions = $this->permission::all();
+
+        return response()->json([
+            'permissions' => $permissions 
+        ], 200);
+    }
+
     /**
      * Show the form for creating a new resource.
      *
