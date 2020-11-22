@@ -57,6 +57,13 @@ class RoleController extends Controller
         return response()->json("Role Created", 200);
     }
 
+    public function getAll(){
+        $roles = $this->role->all();
+        return response()->json([
+            'roles' => $roles
+        ], 200);
+    }
+
     /**
      * Display the specified resource.
      *

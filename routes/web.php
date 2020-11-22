@@ -46,3 +46,6 @@ Auth::routes();
 
 Route::get('/getAllPermission', 'PermissionController@getAllPermissions');
 Route::post("/postRole", "RoleController@store");
+Route::get("/getAllUsers", "UserController@getAll");
+Route::get("/getAllRoles", "RoleController@getAll");
+Route::get("/getAllPermissions", "PermissionController@getAll");

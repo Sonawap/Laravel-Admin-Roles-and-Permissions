@@ -73,6 +73,12 @@ class PermissionController extends Controller
     {
         //
     }
+    public function getAll(){
+        $permissions = $this->permission->all();
+        return response()->json([
+            'permissions' => $permissions
+        ], 200);
+    }
 
     /**
      * Show the form for editing the specified resource.

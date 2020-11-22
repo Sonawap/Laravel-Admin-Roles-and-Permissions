@@ -9,7 +9,19 @@ Vue.use(BootstrapVue)
 // Optionally install the BootstrapVue icon components plugin
 Vue.use(IconsPlugin)
 
-Vue.component('role', require('./components/role.vue').default);
+import VueToastr from "vue-toastr";
+Vue.use(VueToastr, {
+    defaultTimeout: 3000,
+    defaultPosition: "toast-top-right",
+    defaultProgressBar: false,
+    defaultProgressBarValue: 0,
+});
+
+import moment from 'moment';
+
+Vue.filter("date", function(created){
+    return moment(created).format('MMMM Do YYYY, h:mm:ss a'); 
+});
 
 
 
@@ -35,6 +47,8 @@ window.Form = Form;
 
 Vue.component(HasError.name, HasError)
 Vue.component(AlertError.name, AlertError)
+
+require('./component');
 
 const app = new Vue({
     el: '#app'

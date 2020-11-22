@@ -23,7 +23,6 @@
     <div class="login-box">
         @yield('content')
     </div>
-
 </body>
 
 </html>

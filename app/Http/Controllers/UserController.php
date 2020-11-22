@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class UserController extends Controller
@@ -13,7 +14,17 @@ class UserController extends Controller
      */
     public function index()
     {
-        //
+        return view('user.index');
+    }
+
+    public function getAll(){
+        $users = User::latest()->get();
+
+        return response()->json([
+            'users' => $users
+        ], 200);
+
+
     }
 
     /**
@@ -109,7 +120,7 @@ class UserController extends Controller
     }
 
     public function postPassword(Request $request){
-        
+
         $this->validate($request, [
             'newpassword' => 'required|min:6|max:30|confirmed'
         ]);
