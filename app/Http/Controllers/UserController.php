@@ -19,6 +19,10 @@ class UserController extends Controller
 
     public function getAll(){
         $users = User::latest()->get();
+        $users->transform(function($user){
+            $user->role = $user->getRoleNames()->first();
+            return $user;
+        });
 
         return response()->json([
             'users' => $users
@@ -45,7 +49,30 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $this->validate($request, [
+            'name' => 'required|string',
+            'phone' => 'required',
+            'password' => 'required|alpha_num|min:6',
+            'role' => 'required',
+            'email' => 'required|email|unique:users'
+        ]);
+
+        $user = new User();
+
+        $user->name = $request->name;
+        $user->email = $request->email;
+        $user->phone = $request->phone;
+        $user->password = bcrypt($request->password);
+
+        $user->assignRole($request->role);
+
+        if($request->has('permissions')){
+            $user->givePermissionTo($request->permissions);
+        }
+
+        $user->save();
+
+        return response()->json("User Created", 200);
     }
 
     /**

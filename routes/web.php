@@ -17,24 +17,27 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+
+Route::group(['middleware' => 'auth'], function() {
+    Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+
+    Route::resource('user', 'UserController');
+
+    Route::resource('permission', 'PermissionController');
+
+    Route::resource('role', 'RoleController');
 
 
-Route::resource('user', 'UserController');
 
-Route::resource('permission', 'PermissionController');
+    Route::get('/profile', 'UserController@profile')->name('user.profile');
 
-Route::resource('role', 'RoleController');
+    Route::post('/profile', 'UserController@postProfile')->name('user.postProfile');
 
+    Route::get('/password/change', 'UserController@getPassword')->name('userGetPassword');
 
+    Route::post('/password/change', 'UserController@postPassword')->name('userPostPassword');
+});
 
-Route::get('/profile', 'UserController@profile')->name('user.profile');
-
-Route::post('/profile', 'UserController@postProfile')->name('user.postProfile');
-
-Route::get('/password/change', 'UserController@getPassword')->name('userGetPassword');
-
-Route::post('/password/change', 'UserController@postPassword')->name('userPostPassword');
 
 
 
@@ -49,3 +52,6 @@ Route::post("/postRole", "RoleController@store");
 Route::get("/getAllUsers", "UserController@getAll");
 Route::get("/getAllRoles", "RoleController@getAll");
 Route::get("/getAllPermissions", "PermissionController@getAll");
+
+/////////////axios create user
+Route::post('/account/create', 'UserController@store');

@@ -1,4 +1,4 @@
-user<template>
+<template>
     <div class="p-0">
         <div class="card">
             <div class="card-header ui-sortable-handle" style="cursor: move;">
@@ -39,7 +39,7 @@ user<template>
                         <tr v-for="user in users" :key="user.id">
                             <td>{{ user.id }}</td>
                             <td> {{ user.name }}</td>
-                            <td></td>
+                            <td>{{ user.role }}</td>
                             <td>{{ user.email }}</td>
                             <td>
                                 <button class="btn btn-sm btn-info"> <i class="fa fa-eye"></i> View</button>
@@ -63,67 +63,71 @@ user<template>
                             <span aria-hidden="true">&times;</span>
                         </button>
                     </div>
-                <div class="modal-body">
-                    <form>
-                        <div class="form-group">
-                            <label> Name </label>
-                            <input v-model="form.name" type="text" name="name" placeholder="Name"
-                                class="form-control" :class="{'is-invaild': form.errors.has('name')}">
-                            <has-error :form="form" field="name"></has-error>
+                    <form @submit.prevent="createUser()">
+                        <div class="modal-body">
+                            <div class="form-group">
+                                <label> Name </label>
+                                <input v-model="form.name" type="text" name="name" placeholder="Name"
+                                    class="form-control" :class="{'is-invaild': form.errors.has('name')}">
+                                <has-error :form="form" field="name"></has-error>
+                            </div>
+
+                            <div class="form-group">
+                                <label> Email </label>
+                                <input v-model="form.email" type="text" name="email" placeholder="Email"
+                                    class="form-control" :class="{'is-invaild': form.errors.has('email')}">
+                                <has-error :form="form" field="email"></has-error>
+                            </div>
+
+                            <div class="form-group">
+                                <label> Phone Number </label>
+                                <input v-model="form.phone" type="text" name="phone" placeholder="Phone Number"
+                                    class="form-control" :class="{'is-invaild': form.errors.has('phone')}">
+                                <has-error :form="form" field="phone"></has-error>
+                            </div>
+
+                            <div class="form-group">
+                                <label> Choose Role </label>
+                                <b-form-select
+                                    v-model="form.role"
+                                    :options="roles"
+                                    text-field="name"
+                                    value-field="id"
+
+                                ></b-form-select>
+                                <has-error :form="form" field="role"></has-error>
+
+                            </div>
+
+                            <div class="form-group">
+                                <label> Password </label>
+                                <input v-model="form.password" type="password" name="password" placeholder="Password"
+                                    class="form-control" :class="{'is-invaild': form.errors.has('password')}">
+                                <has-error :form="form" field="password"></has-error>
+                            </div>
+
+                            <b-form-group label="Assign Permissions">
+                                <b-form-checkbox
+                                    v-for="option in permissions"
+                                    v-model="form.permissions"
+                                    :key="option.name"
+                                    :value="option.name"
+                                    name="flavour-3a"
+                                >
+                                    {{ option.name }}
+                                </b-form-checkbox>
+                            </b-form-group>
+
                         </div>
-
-                        <div class="form-group">
-                            <label> Email </label>
-                            <input v-model="form.email" type="text" name="email" placeholder="Email"
-                                class="form-control" :class="{'is-invaild': form.errors.has('email')}">
-                            <has-error :form="form" field="email"></has-error>
+                        <div class="modal-footer justify-content-between">
+                            <button type="button"  class="btn btn-lg btn-danger" data-dismiss="modal">Close</button>
+                            <b-button variant="primary" v-if="!load" class="btn-lg" disabled>
+                                <b-spinner small type="grow"></b-spinner>
+                                Creating Account...
+                            </b-button>
+                            <button type="submit" v-if="load" class="btn btn-lg btn-primary">Save User</button>
                         </div>
-
-                        <div class="form-group">
-                            <label> Phone Number </label>
-                            <input v-model="form.phone" type="text" name="phone" placeholder="Phone Number"
-                                class="form-control" :class="{'is-invaild': form.errors.has('phone')}">
-                            <has-error :form="form" field="phone"></has-error>
-                        </div>
-
-                        <div class="form-group">
-                            <label> Choose Role </label>
-                            <b-form-select
-                                v-model="form.role"
-                                :options="roles"
-                                text-field="name"
-                                value-field="id"
-
-                            ></b-form-select>
-                            <has-error :form="form" field="role"></has-error>
-
-                        </div>
-
-                        <div class="form-group">
-                            <label> Password </label>
-                            <input v-model="form.password" type="password" name="password" placeholder="Password"
-                                class="form-control" :class="{'is-invaild': form.errors.has('password')}">
-                            <has-error :form="form" field="password"></has-error>
-                        </div>
-
-                        <b-form-group label="Assign Permissions">
-                            <b-form-checkbox
-                                v-for="option in permissions"
-                                v-model="form.permissions"
-                                :key="option.name"
-                                :value="option.name"
-                                name="flavour-3a"
-                            >
-                                {{ option.name }}
-                            </b-form-checkbox>
-                        </b-form-group>
-
                     </form>
-                </div>
-                <div class="modal-footer justify-content-between">
-                    <button type="button" class="btn btn-lg btn-danger" data-dismiss="modal">Close</button>
-                    <button type="submit" class="btn btn-lg btn-primary">Save User</button>
-                </div>
                 </div>
             </div>
         </div>
@@ -134,6 +138,7 @@ user<template>
 export default {
     data() {
         return {
+            load: true,
             users: [],
             roles: [],
             permissions:[],
@@ -165,11 +170,29 @@ export default {
                 this.permissions = response.data.permissions
             });
         },
+
+        createUser(){
+            this.load = false;
+            this.form.post("/account/create").then((response) => {
+                this.load = true;
+                this.$toastr.s("user create succefully", "Created");
+                Fire.$emit("loadUser");
+                $("#createUser").modal("hide");
+                this.form.reset();
+            }).catch(() => {
+                this.load = true;
+                this.$toastr.e("Cannot create user, try again", "Error");
+            });
+        }
+
     },
     created(){
         this.getUsers();
         this.getRoles();
         this.getPermissions();
+        Fire.$on('loadUser', () => {
+            this.getUsers();
+        });
     }
 }
 </script>
