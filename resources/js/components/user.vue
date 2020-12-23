@@ -9,7 +9,7 @@
                 <div class="card-tools">
                     <ul class="nav nav-pills ml-auto">
                         <li class="nav-item mr-1">
-                            <button class="btn btn-sm btn-primary" type="button" data-toggle="modal" data-target="#createUser"><i class="fas fa-plus-circle"></i> Add New</button>
+                            <button class="btn btn-sm btn-primary" @click="createMode"><i class="fas fa-plus-circle"></i> Add New</button>
                         </li>
                         <li class="nav-item">
                             <div class="input-group mt-0 input-group-sm" style="width: 350px;">
@@ -42,8 +42,8 @@
                             <td>{{ user.role }}</td>
                             <td>{{ user.email }}</td>
                             <td>
-                                <button class="btn btn-sm btn-info"> <i class="fa fa-eye"></i> View</button>
-                                <button class="btn btn-sm btn-warning" > <i class="fa fa-edit"></i> Edit</button>
+                                <button class="btn btn-sm btn-info" @click="viewUser(user)"> <i class="fa fa-eye"></i> View</button>
+                                <button class="btn btn-sm btn-warning" @click="editUser(user)" > <i class="fa fa-edit"></i> Edit</button>
                                 <button class="btn btn-sm btn-danger"> <i class="fa fa-trash"></i> Delete </button>
                             </td>
                             <td>
@@ -53,17 +53,42 @@
                     </tbody>
                 </table>
             </div>
+            <loading :loading="loading"></loading>
         </div>
+
+        <div class="modal fade" id="viewUser" tabindex="-1" role="dialog" aria-labelledby="viewUserModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><b>Name:</b> {{ user.name }}</p>
+                                <p><b>Email:</b> {{ user.email }}</p>
+                                <p><b>Last Updated:</b> {{ user.updated_at | date }}</p>
+                                <p><b>Date Posted:</b> {{ user.created_at | date }}</p>
+                            </div>
+
+                            <div class="col-md-6">
+                                <img :src="img" class="img-circle">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
         <div class="modal fade" id="createUser" tabindex="-1" role="dialog" aria-labelledby="createUserModalLabel" aria-hidden="true">
             <div class="modal-dialog" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="createUserModalLabel">Create User</h5>
+                        <h5 class="modal-title" id="createUserModalLabel" v-show="!editMode">Create User</h5>
+                        <h5 class="modal-title" id="createUserModalLabel" v-show="editMode">Edit User</h5>
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                         </button>
                     </div>
-                    <form @submit.prevent="createUser()">
+                    <form @submit.prevent="!editMode ? createUser() : updateUser()">
                         <div class="modal-body">
                             <div class="form-group">
                                 <label> Name </label>
@@ -123,9 +148,10 @@
                             <button type="button"  class="btn btn-lg btn-danger" data-dismiss="modal">Close</button>
                             <b-button variant="primary" v-if="!load" class="btn-lg" disabled>
                                 <b-spinner small type="grow"></b-spinner>
-                                Creating Account...
+                                {{  action }}
                             </b-button>
-                            <button type="submit" v-if="load" class="btn btn-lg btn-primary">Save User</button>
+                            <button type="submit" v-if="load" v-show="!editMode" class="btn btn-lg btn-primary">Save User</button>
+                            <button type="submit" v-if="load" v-show="editMode" class="btn btn-lg btn-success">Update User</button>
                         </div>
                     </form>
                 </div>
@@ -138,11 +164,17 @@
 export default {
     data() {
         return {
+            action: '',
+            loading: false,
+            editMode: false,
             load: true,
+            img: 'http://localhost:8000/img/avatar.jpg',
+            user: {},
             users: [],
             roles: [],
             permissions:[],
             form: new Form({
+                'id' : '',
                 'name': '',
                 'phone': '',
                 'password': '',
@@ -153,12 +185,35 @@ export default {
         }
     },
     methods:{
+        createMode(){
+            this.editMode = false;
+            $('#createUser').modal('show');
+        },
+
+        editUser(user){
+            this.editMode = true;
+            this.form.reset();
+            this.form.fill(user);
+            this.form.role = user.roles[0].id;
+            this.form.permissions = user.userPermissions
+            $('#createUser').modal('show');
+
+        },
         getUsers(){
+            
+            this.loading = true;
             axios.get('/getAllUsers').then((response) =>{
+                this.loading = false;
                 this.users = response.data.users
             }).catch(()=>{
+                this.loading = false;
                 this.$toastr.e("Cannot load users", "Error");
             })
+        },
+        viewUser(user){
+            $('#viewUser').modal('show');
+            this.img = 'http://localhost:8000/img/'+user.photo;
+            this.user = user;
         },
         getRoles(){
             axios.get('/getAllRoles').then((response) =>{
@@ -172,6 +227,7 @@ export default {
         },
 
         createUser(){
+            this.action = 'Creating user ...'
             this.load = false;
             this.form.post("/account/create").then((response) => {
                 this.load = true;
@@ -183,7 +239,23 @@ export default {
                 this.load = true;
                 this.$toastr.e("Cannot create user, try again", "Error");
             });
-        }
+        },
+
+        updateUser(){
+            this.action = 'Update user ...'
+            this.load = false;
+            this.form.put("/account/update/" +this.form.id).then((response) => {
+                this.load = true;
+                this.$toastr.s("user information updated succefully", "Created");
+                Fire.$emit("loadUser");
+                $("#createUser").modal("hide");
+                this.form.reset();
+            }).catch(() => {
+                this.load = true;
+                this.$toastr.e("Cannot update user information, try again", "Error");
+            });
+        },
+
 
     },
     created(){

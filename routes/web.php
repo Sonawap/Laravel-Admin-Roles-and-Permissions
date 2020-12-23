@@ -55,3 +55,4 @@ Route::get("/getAllPermissions", "PermissionController@getAll");
 
 /////////////axios create user
 Route::post('/account/create', 'UserController@store');
+Route::put('/account/update/{id}', 'UserController@update');
