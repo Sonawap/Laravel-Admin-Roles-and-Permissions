@@ -25,9 +25,6 @@ Route::group(['middleware' => 'auth'], function() {
 
     Route::resource('permission', 'PermissionController');
 
-    Route::resource('role', 'RoleController');
-
-
 
     Route::get('/profile', 'UserController@profile')->name('user.profile');
 
@@ -37,6 +34,16 @@ Route::group(['middleware' => 'auth'], function() {
 
     Route::post('/password/change', 'UserController@postPassword')->name('userPostPassword');
 });
+
+
+Route::group(['middleware' => ['auth', 'role_or_permission:admin|create role|create permission']], function() {
+
+    Route::resource('role', 'RoleController');
+
+
+});
+
+
 
 
 
@@ -56,3 +63,5 @@ Route::get("/getAllPermissions", "PermissionController@getAll");
 /////////////axios create user
 Route::post('/account/create', 'UserController@store');
 Route::put('/account/update/{id}', 'UserController@update');
+Route::delete('/delete/user/{id}', 'UserController@delete');
+Route::get('/search/user', 'UserController@search');

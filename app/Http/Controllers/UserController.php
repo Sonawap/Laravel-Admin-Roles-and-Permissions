@@ -205,4 +205,31 @@ class UserController extends Controller
 
         return redirect()->back()->with('success', 'Password has been Changed Successfully');
     }
+
+    public function delete($id){
+        $user = User::findOrFail($id);
+
+        $user->delete();
+
+        return response()->json('ok', 200);
+    }
+
+    public function search(Request $request){
+        $searchWord = $request->get('s');
+        $users = User::where(function($query) use ($searchWord){
+            $query->where('name', 'LIKE', "%$searchWord%")
+            ->orWhere('email', 'LIKE', "%$searchWord%");
+        })->latest()->get();
+
+        $users->transform(function($user){
+            $user->role = $user->getRoleNames()->first();
+            $user->userPermissions = $user->getPermissionNames();
+            return $user;
+        });
+
+        return response()->json([
+            'users' => $users
+        ], 200);
+        
+    }
 }

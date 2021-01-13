@@ -13,10 +13,10 @@
                         </li>
                         <li class="nav-item">
                             <div class="input-group mt-0 input-group-sm" style="width: 350px;">
-                                <input type="text" name="table_search" class="form-control float-right" placeholder="Search by name, email">
+                                <input type="text" name="table_search" v-model="searchWord" class="form-control float-right" placeholder="Search by name, email">
 
                                 <div class="input-group-append">
-                                    <button type="submit" class="btn btn-default"><i class="fas fa-search"></i></button>
+                                    <button type="submit" class="btn btn-default" @click="search"><i class="fas fa-search"></i></button>
                                 </div>
                             </div>
                         </li>
@@ -44,7 +44,7 @@
                             <td>
                                 <button class="btn btn-sm btn-info" @click="viewUser(user)"> <i class="fa fa-eye"></i> View</button>
                                 <button class="btn btn-sm btn-warning" @click="editUser(user)" > <i class="fa fa-edit"></i> Edit</button>
-                                <button class="btn btn-sm btn-danger"> <i class="fa fa-trash"></i> Delete </button>
+                                <button class="btn btn-sm btn-danger" @click="deleteUser(user)"> <i class="fa fa-trash"></i> Delete </button>
                             </td>
                             <td>
                                 {{ user.created_at | date }}
@@ -165,6 +165,7 @@ export default {
     data() {
         return {
             action: '',
+            searchWord: '',
             loading: false,
             editMode: false,
             load: true,
@@ -185,9 +186,50 @@ export default {
         }
     },
     methods:{
+        search(){
+            this.loading = true;
+            axios.get('/search/user?s='+this.searchWord).then((response) =>{
+                this.loading = false;
+                this.users = response.data.users
+            }).catch(() =>{
+                this.loading = false;
+                toast.fire({
+                    icon: 'error',
+                    title: "search failed"
+                })
+
+            })
+        },
         createMode(){
             this.editMode = false;
             $('#createUser').modal('show');
+        },
+
+        deleteUser(user){
+            swal.fire({
+                title: 'Are you sure?',
+                text: user.name + " will be deleted permanently!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, delete it!'
+                }).then((result) => {
+                if (result.value) {
+                    axios.delete('/delete/user/'+user.id).then(() =>{
+                        toast.fire({
+                            icon: 'success',
+                            title: user.name +" has been deleted sucessfully"
+                        })
+                        Fire.$emit("loadUser");
+                    }).catch(() =>{
+                        toast.fire({
+                            icon: 'error',
+                            title: user.name +" was unable to be remove, tyr again later"
+                        })
+                    })
+                }
+            })
         },
 
         editUser(user){
@@ -200,7 +242,7 @@ export default {
 
         },
         getUsers(){
-            
+
             this.loading = true;
             axios.get('/getAllUsers').then((response) =>{
                 this.loading = false;
